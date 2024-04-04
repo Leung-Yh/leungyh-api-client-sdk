@@ -5,7 +5,8 @@ package com.leungyh.apiclient.model.enums;
  */
 public enum PathToMethodEnum {
     name("/api/user", "getUsernameByPost"),
-    loveTalk("/api/loveTalk", "getLoveTalk")
+    loveTalk("/api/loveTalk", "getLoveTalk"),
+    weiboHotSearch("/api/weiboHotSearch", "getWeiboHotSearch")
     ;
 
     private final String path;

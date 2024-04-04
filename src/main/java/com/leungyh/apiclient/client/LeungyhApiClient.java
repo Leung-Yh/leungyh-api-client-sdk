@@ -16,7 +16,9 @@ import com.leungyh.apiclient.model.BaseRequest;
 import com.leungyh.apiclient.model.entity.User;
 import com.leungyh.apiclient.model.enums.PathToMethodEnum;
 import com.leungyh.apiclient.model.response.LoveTalkResponse;
+import com.leungyh.apiclient.model.response.WeiboHotSearchResponse;
 import com.leungyh.apiclient.utils.SignUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -27,6 +29,7 @@ import java.util.Map;
 /**
  * @author Leungyh
  */
+@Slf4j
 public class LeungyhApiClient {
 
     public static final String GATEWAY_HOST = "http://localhost:8088";
@@ -74,6 +77,50 @@ public class LeungyhApiClient {
     }
 
     /**
+     * 获取微博实时热搜
+     *
+     * @return
+     */
+    public WeiboHotSearchResponse getWeiboHotSearch() {
+        return sendRequest(GATEWAY_HOST + PathToMethodEnum.weiboHotSearch.getPath(), "GET", null, WeiboHotSearchResponse.class);
+    }
+
+    // todo 添加新的接口调用方法
+
+
+    /**
+     * 解析用户调用模拟接口的请求 并调用对应的模拟接口
+     *
+     * @param baseRequest
+     * @return
+     */
+    public Object resolveAndCall(BaseRequest baseRequest) {
+        String path = baseRequest.getPath();
+        String method = baseRequest.getMethod();
+        Map<String, Object> requestParams = baseRequest.getRequestParams();
+        HttpServletRequest userRequest = baseRequest.getUserRequest();
+        try {
+            // 获取用户名
+            if (path.equals(PathToMethodEnum.name.getPath())) {
+                return invokeMethod(PathToMethodEnum.name.getMethod(), requestParams, User.class);
+            }
+            // 获取土味情话
+            if (path.equals(PathToMethodEnum.loveTalk.getPath())) {
+                return invokeMethod(PathToMethodEnum.loveTalk.getMethod());
+            }
+            // 获取微博热搜榜
+            if (path.equals(PathToMethodEnum.weiboHotSearch.getPath())) {
+                return invokeMethod(PathToMethodEnum.weiboHotSearch.getMethod());
+            }
+
+            // todo 添加新的接口地址判断
+        } catch (LeungyhApiException e) {
+            throw new LeungyhApiException(e.getCode(), e.getMessage());
+        }
+        return null;
+    }
+
+    /**
      * 发送调用url对应模拟接口的请求
      *
      * @param url
@@ -87,6 +134,7 @@ public class LeungyhApiClient {
         HttpRequest request;
         Gson gson = new Gson();
         String jsonBody = gson.toJson(params);
+        log.info("jsonBody: {}", jsonBody);
         switch (method) {
             case "GET":
                 request = HttpRequest.get(url);
@@ -132,29 +180,6 @@ public class LeungyhApiClient {
             }
         }
         return map;
-    }
-
-    /**
-     * 解析用户调用模拟接口的请求 并调用对应的模拟接口
-     *
-     * @param baseRequest
-     * @return
-     */
-    public Object resolveAndCall(BaseRequest baseRequest) {
-        String path = baseRequest.getPath();
-        String method = baseRequest.getMethod();
-        Map<String, Object> requestParams = baseRequest.getRequestParams();
-        HttpServletRequest userRequest = baseRequest.getUserRequest();
-        try {
-            if (path.equals(PathToMethodEnum.name.getPath())) {
-                return invokeMethod(PathToMethodEnum.name.getMethod(), requestParams, User.class);
-            } else if (path.equals(PathToMethodEnum.loveTalk.getPath())) {
-                return invokeMethod(PathToMethodEnum.loveTalk.getMethod());
-            }
-        } catch (LeungyhApiException e) {
-            throw new LeungyhApiException(e.getCode(), e.getMessage());
-        }
-        return null;
     }
 
     /**
